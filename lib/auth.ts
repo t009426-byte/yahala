@@ -1,74 +1,47 @@
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { z } from "zod";
+import { createClient } from "./supabase/server";
 import { prisma } from "./prisma";
-import { verifyOTP } from "./otp";
+import type { UserRole } from "@/types";
 
-const credentialsSchema = z.object({
-  phone: z.string().min(8).max(15),
-  otp: z.string().length(6).regex(/^\d{6}$/),
-});
+export interface AppSession {
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    label: string | null;
+    role: UserRole;
+    eventId: string | null;
+  };
+}
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  // Credentials provider requires JWT strategy
-  session: { strategy: "jwt" },
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
-  providers: [
-    Credentials({
-      id: "phone-otp",
-      name: "Phone OTP",
-      credentials: {
-        phone: { label: "Phone", type: "tel" },
-        otp: { label: "OTP", type: "text" },
+export async function auth(): Promise<AppSession | null> {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user || !user.email) return null;
+
+    let dbUser = await prisma.user.findUnique({
+      where: { email: user.email },
+      select: { id: true, name: true, label: true, role: true, eventId: true },
+    });
+
+    if (!dbUser) {
+      dbUser = await prisma.user.create({
+        data: { email: user.email, role: "GATE_STAFF" },
+        select: { id: true, name: true, label: true, role: true, eventId: true },
+      });
+    }
+
+    return {
+      user: {
+        id: dbUser.id,
+        email: user.email,
+        name: dbUser.name,
+        label: dbUser.label,
+        role: dbUser.role,
+        eventId: dbUser.eventId,
       },
-      async authorize(credentials) {
-        const parsed = credentialsSchema.safeParse(credentials);
-        if (!parsed.success) return null;
-
-        const { phone, otp } = parsed.data;
-        const valid = await verifyOTP(phone, otp);
-        if (!valid) return null;
-
-        // Find or create the user by phone number
-        const user = await prisma.user.upsert({
-          where: { phone },
-          create: { phone, role: "GATE_STAFF" },
-          update: {}, // don't overwrite existing role on re-login
-        });
-
-        return {
-          id: user.id,
-          name: user.name ?? undefined,
-          email: user.email ?? undefined,
-          phone: user.phone ?? undefined,
-          role: user.role,
-          eventId: user.eventId ?? undefined,
-        };
-      },
-    }),
-  ],
-  callbacks: {
-    jwt({ token, user }) {
-      // `user` is only set on initial sign-in
-      if (user) {
-        token.id = user.id;
-        token.phone = user.phone;
-        token.role = user.role;
-        token.eventId = user.eventId;
-      }
-      return token;
-    },
-    session({ session, token }) {
-      session.user.id = token.id as string;
-      session.user.phone = token.phone as string | undefined;
-      session.user.role = token.role as string as import("@/types").UserRole;
-      session.user.eventId = token.eventId as string | undefined;
-      return session;
-    },
-  },
-});
+    };
+  } catch {
+    return null;
+  }
+}

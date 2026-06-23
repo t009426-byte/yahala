@@ -13,7 +13,7 @@ interface PageProps {
 
 async function getPassData(token: string) {
   const guest = await prisma.guest.findUnique({
-    where: { qrToken: token },
+    where: { qrToken: decodeURIComponent(token) },
     include: {
       event: {
         select: {
@@ -22,6 +22,7 @@ async function getPassData(token: string) {
           date: true,
           venue: true,
           coupleNames: true,
+          invitationText: true,
         },
       },
       invitedBy: {
@@ -52,8 +53,10 @@ async function getPassData(token: string) {
     eventName: guest.event.name,
     eventDate: guest.event.date.toISOString(),
     eventVenue: guest.event.venue,
+    invitationText: guest.event.invitationText,
     qrDataUrl: dataUrl,
     chainPath: chainPath.map((g) => ({ name: g.name })),
+    guestToken: guest.qrToken,
   };
 }
 
@@ -89,7 +92,7 @@ async function buildChainPath(
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const guest = await prisma.guest.findUnique({
-    where: { qrToken: params.token },
+    where: { qrToken: decodeURIComponent(params.token) },
     select: {
       name: true,
       event: { select: { coupleNames: true } },

@@ -40,11 +40,18 @@ enum GiftStatus {
 }
 
 enum UserRole {
+  ADMIN
   ORGANIZER
   COUPLE
   BRIDE_FAMILY
   GROOM_FAMILY
   GATE_STAFF
+}
+
+enum DiscountType {
+  FIXED
+  PERCENTAGE
+  FREE
 }
 
 // ─────────────────────────────────────────────
@@ -59,6 +66,7 @@ model User {
   emailVerified DateTime?
   image         String?
   role          UserRole  @default(GATE_STAFF)
+  label         String?
   eventId       String?
 
   accounts Account[]
@@ -125,15 +133,19 @@ model Event {
   venue            String
   capacity         Int
   coupleNames      String
-  bridePhone       String
-  groomPhone       String
   chainDepthLimit  Int      @default(2)
   chainBranchWidth Int      @default(1)
+  invitationText   String?  @db.Text
+  organizerCode    String?  @unique
+  brideCode        String?  @unique
+  groomCode        String?  @unique
+  gateCode         String?  @unique
 
   guests       Guest[]
   gifts        Gift[]
   inviteChains InviteChain[]
   users        User[]
+  vouchers     Voucher[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -150,8 +162,9 @@ model Guest {
   side          GuestSide
   tableNumber   Int?
   tier          GuestTier   @default(GENERAL)
-  plusOneAllowed Boolean    @default(false)
-  plusOneName   String?
+  plusOneAllowed    Boolean  @default(false)
+  plusOneConfirmed  Boolean?  @map("plus_one_confirmed")
+  plusOneName       String?
   invitedById   String?
   chainDepth    Int         @default(0)
   status        GuestStatus @default(PENDING)
@@ -189,9 +202,11 @@ model Gift {
   paymentRef    String?    @unique
   paymentMethod String?
   status        GiftStatus @default(PENDING)
+  voucherId     String?
 
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guest   Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  voucher Voucher? @relation(fields: [voucherId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -201,6 +216,29 @@ model Gift {
   @@index([status])
   @@index([createdAt(sort: Desc)])
   @@map("gifts")
+}
+
+model Voucher {
+  id           String       @id @default(cuid())
+  eventId      String
+  code         String       @unique
+  label        String?
+  discountType DiscountType
+  amount       Decimal?     @db.Decimal(10, 3)
+  percentage   Int?
+  maxUses      Int          @default(1)
+  usedCount    Int          @default(0)
+  isActive     Boolean      @default(true)
+  expiresAt    DateTime?
+
+  event Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  gifts Gift[]
+
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+  @@index([code])
+  @@map("vouchers")
 }
 
 model InviteChain {

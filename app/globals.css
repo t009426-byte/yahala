@@ -4,98 +4,113 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 340 10% 15%;
+    /* WeddingPass design tokens */
+    --wp-bg:      #F6F1E9;
+    --wp-surface: #EFEAE0;
+    --wp-card:    #FFFFFF;
+    --wp-dark:    #1C1A17;
+    --wp-muted:   #8A8175;
+    --wp-sub:     #A8A092;
+    --wp-green:   #2E7D5B;
+    --wp-gold:    #C9A86A;
+    --wp-gold-dk: #B08D4F;
+    --wp-bride:   #C2547A;
+    --wp-groom:   #3E6080;
+    --wp-border:  rgba(28, 26, 23, 0.08);
+
+    /* shadcn compat */
+    --background: 38 30% 94%;
+    --foreground: 30 8% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 340 10% 15%;
+    --card-foreground: 30 8% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 340 10% 15%;
+    --popover-foreground: 30 8% 11%;
     --primary: 342 48% 40%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 340 20% 96%;
-    --secondary-foreground: 340 10% 20%;
-    --muted: 340 10% 96%;
-    --muted-foreground: 340 5% 50%;
-    --accent: 40 60% 55%;
-    --accent-foreground: 340 10% 15%;
+    --secondary: 38 25% 91%;
+    --secondary-foreground: 30 8% 11%;
+    --muted: 38 15% 90%;
+    --muted-foreground: 30 5% 50%;
+    --accent: 40 50% 58%;
+    --accent-foreground: 30 8% 11%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 340 15% 90%;
-    --input: 340 15% 90%;
+    --border: 38 18% 88%;
+    --input: 38 18% 88%;
     --ring: 342 48% 40%;
     --radius: 0.75rem;
   }
 
-  .dark {
-    --background: 340 10% 8%;
-    --foreground: 0 0% 98%;
-    --card: 340 10% 10%;
-    --card-foreground: 0 0% 98%;
-    --popover: 340 10% 10%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 342 48% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 340 10% 16%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 340 10% 16%;
-    --muted-foreground: 340 5% 65%;
-    --accent: 40 60% 55%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 340 10% 20%;
-    --input: 340 10% 20%;
-    --ring: 342 48% 55%;
-  }
-
   * {
     @apply border-border;
+    -webkit-font-smoothing: antialiased;
   }
 
   body {
-    @apply bg-background text-foreground;
+    background: var(--wp-bg);
+    color: var(--wp-dark);
+    font-family: 'Manrope', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Arabic / RTL support */
+  [dir="rtl"] body,
   [dir="rtl"] {
-    font-family: "Noto Naskh Arabic", "Scheherazade New", serif;
+    font-family: 'Tajawal', system-ui, sans-serif;
   }
 }
 
 @layer utilities {
-  .gold-shimmer {
-    background: linear-gradient(
-      90deg,
-      #c9a84c 0%,
-      #e2c97e 30%,
-      #f5e6b2 50%,
-      #e2c97e 70%,
-      #c9a84c 100%
-    );
-    background-size: 200% auto;
-    animation: shimmer 3s infinite linear;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  /* WeddingPass animations */
+  @keyframes wpRise {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: none; }
   }
+  @keyframes wpPop {
+    0%   { transform: scale(.82); opacity: 0; }
+    60%  { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes wpSheet {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  @keyframes wpFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes wpPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: .35; }
+  }
+  @keyframes wpSpin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  }
+
+  .animate-wp-rise   { animation: wpRise .45s ease both; }
+  .animate-wp-pop    { animation: wpPop .4s ease both; }
+  .animate-wp-sheet  { animation: wpSheet .32s cubic-bezier(.2,.8,.2,1) both; }
+  .animate-wp-fade   { animation: wpFade .25s ease both; }
+  .animate-wp-pulse  { animation: wpPulse 1.8s ease-in-out infinite; }
+  .animate-wp-spin   { animation: wpSpin .7s linear infinite; }
+
+  /* Scroll hide */
+  .scroll-hide { scrollbar-width: none; }
+  .scroll-hide::-webkit-scrollbar { display: none; }
+
+  /* Display font */
+  .font-display { font-family: 'Cormorant Garamond', 'Georgia', serif; }
+  [dir="rtl"] .font-display { font-family: 'Reem Kufi', sans-serif; }
 
   .glass {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(246, 241, 233, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
   }
 
-  .gate-high-contrast {
-    @apply bg-black text-white;
-  }
-
-  /* Safe area for mobile notch / home bar */
-  .safe-top {
-    padding-top: max(env(safe-area-inset-top), 1rem);
-  }
-  .safe-bottom {
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
-  }
+  .safe-top    { padding-top:    max(env(safe-area-inset-top), 1rem); }
+  .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 1rem); }
 }

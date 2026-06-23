@@ -8,7 +8,9 @@ export type GuestSide = "BRIDE" | "GROOM";
 export type GuestTier = "GENERAL" | "VIP" | "BACKSTAGE";
 export type GuestStatus = "PENDING" | "CONFIRMED" | "DECLINED" | "ENTERED";
 export type GiftStatus = "PENDING" | "PAID" | "FAILED";
+export type DiscountType = "FIXED" | "PERCENTAGE" | "FREE";
 export type UserRole =
+  | "ADMIN"
   | "ORGANIZER"
   | "COUPLE"
   | "BRIDE_FAMILY"
@@ -301,39 +303,6 @@ export interface PendingEntrySync {
   guestId: string;
   enteredAt: string;
   syncedAt?: string;
-}
-
-// ─────────────────────────────────────────────
-// Auth session extension
-// ─────────────────────────────────────────────
-
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-      phone?: string | null;
-      role: UserRole;
-      eventId?: string | null;
-    };
-  }
-
-  interface User {
-    phone?: string | null;
-    role: UserRole;
-    eventId?: string | null;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    phone?: string | null;
-    role: UserRole;
-    eventId?: string | null;
-  }
 }
 
 // ─────────────────────────────────────────────

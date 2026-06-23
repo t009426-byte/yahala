@@ -14,8 +14,10 @@ export interface QRPassProps {
   eventName: string;
   eventDate: string; // ISO
   eventVenue: string;
+  invitationText?: string | null;
   qrDataUrl: string;
   chainPath?: Array<{ name: string }>;
+  guestToken: string;
 }
 
 // ─── Side / Tier pills ────────────────────────────────────────────────────────
@@ -88,8 +90,10 @@ export function QRPass({
   eventName,
   eventDate,
   eventVenue,
+  invitationText,
   qrDataUrl,
   chainPath,
+  guestToken,
 }: QRPassProps) {
   const [copied, setCopied] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
@@ -153,6 +157,11 @@ export function QRPass({
                 {coupleNames}
               </p>
               <p className="text-xs opacity-80 mt-0.5 truncate">{eventName}</p>
+            {invitationText && (
+              <p className="text-[11px] opacity-70 mt-1.5 leading-relaxed" style={{ fontFamily: "'Amiri', serif" }}>
+                {invitationText}
+              </p>
+            )}
             </div>
             <div className="shrink-0 text-3xl opacity-90">💍</div>
           </div>
@@ -266,6 +275,23 @@ export function QRPass({
         {shareError && (
           <p className="text-xs text-destructive text-center">{shareError}</p>
         )}
+
+        <a
+          href={`/gift/${guestToken}`}
+          className={[
+            "w-full py-3.5 rounded-xl font-bold text-sm",
+            "active:scale-[0.98] transition-all duration-200",
+            "flex items-center justify-center gap-2",
+          ].join(" ")}
+          style={{
+            background: "rgba(201,168,106,0.12)",
+            color: "#B08D4F",
+            border: "1.5px solid rgba(201,168,106,0.35)",
+          }}
+        >
+          <span>🎁</span>
+          <span>أرسل هدية</span>
+        </a>
 
         <p className="text-center text-xs text-muted-foreground/60">
           يمكنك أخذ لقطة شاشة أو حفظ الصورة
