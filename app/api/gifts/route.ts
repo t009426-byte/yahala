@@ -5,8 +5,7 @@ import { initiatePayment, executePayment } from "@/lib/myfatoorah";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
-  const isDev = process.env.NODE_ENV === "development";
-  if (!session && !isDev) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const eventId = req.nextUrl.searchParams.get("eventId");
   const sideParam = req.nextUrl.searchParams.get("side") as "BRIDE" | "GROOM" | null;
@@ -20,7 +19,6 @@ export async function GET(req: NextRequest) {
   }
 
   const isGlobal =
-    !session ||
     session.user.role === "ORGANIZER" ||
     session.user.role === "COUPLE";
   if (!isGlobal && session!.user.eventId !== eventId) {

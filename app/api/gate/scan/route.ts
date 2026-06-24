@@ -5,8 +5,7 @@ import { verifyQRToken } from "@/lib/qr";
 
 export async function POST(req: Request) {
   const session = await auth();
-  const isDev = process.env.NODE_ENV === "development";
-  if (!session && !isDev) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -25,6 +24,7 @@ export async function POST(req: Request) {
     where: { qrToken: payload.qrToken },
     select: {
       id: true,
+      eventId: true,
       name: true,
       phone: true,
       side: true,
@@ -40,6 +40,11 @@ export async function POST(req: Request) {
 
   if (!guest) {
     return NextResponse.json({ status: "not_found", error: "الضيف غير موجود في القائمة" }, { status: 404 });
+  }
+
+  // Ensure gate staff can only scan guests from their own event
+  if (session.user.eventId && guest.eventId !== session.user.eventId) {
+    return NextResponse.json({ status: "invalid", error: "QR غير صالح أو منتهي الصلاحية" }, { status: 403 });
   }
 
   if (guest.status === "DECLINED") {

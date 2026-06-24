@@ -28,13 +28,17 @@ export async function middleware(request: NextRequest) {
   // Refresh session — do not remove this
   const { data: { user } } = await supabase.auth.getUser();
 
-  // In development, allow unauthenticated access
-  if (process.env.NODE_ENV === "development") return supabaseResponse;
-
   const { pathname } = request.nextUrl;
-  const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth");
 
-  if (!user && !isAuthPage) {
+  const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth");
+  const isPublicPage =
+    pathname.startsWith("/pass/") ||
+    pathname.startsWith("/gift/") ||
+    pathname.startsWith("/invite/") ||
+    pathname.startsWith("/rsvp/");
+  const isApiRoute = pathname.startsWith("/api/");
+
+  if (!user && !isAuthPage && !isPublicPage && !isApiRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

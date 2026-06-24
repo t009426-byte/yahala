@@ -19,9 +19,8 @@ const createSchema = z.object({
 
 export async function GET() {
   const session = await auth();
-  const isDev = process.env.NODE_ENV === "development";
-  if (!session && !isDev) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session && !isAdmin(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdmin(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const events = await prisma.event.findMany({
     orderBy: { createdAt: "desc" },
@@ -35,9 +34,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await auth();
-  const isDev = process.env.NODE_ENV === "development";
-  if (!session && !isDev) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session && !isAdmin(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdmin(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
   const parsed = createSchema.safeParse(body);

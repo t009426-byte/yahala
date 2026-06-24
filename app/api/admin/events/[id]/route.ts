@@ -18,9 +18,8 @@ const patchSchema = z.object({
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth();
-  const isDev = process.env.NODE_ENV === "development";
-  if (!session && !isDev) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session && !isAdmin(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdmin(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const event = await prisma.event.findUnique({
     where: { id: params.id },
@@ -37,9 +36,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth();
-  const isDev = process.env.NODE_ENV === "development";
-  if (!session && !isDev) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session && !isAdmin(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdmin(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
   const parsed = patchSchema.safeParse(body);
@@ -62,9 +60,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth();
-  const isDev = process.env.NODE_ENV === "development";
-  if (!session && !isDev) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session && !isAdmin(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdmin(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   await prisma.event.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });

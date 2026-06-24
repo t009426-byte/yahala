@@ -19,8 +19,7 @@ const bulkSchema = z.object({
 
 export async function POST(req: NextRequest) {
   const session = await auth();
-  const isDev = process.env.NODE_ENV === "development";
-  if (!session && !isDev) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -32,11 +31,16 @@ export async function POST(req: NextRequest) {
 
   const { eventId, side, guests } = parsed.data;
 
-  // Family roles may only add to their side
-  if (session?.user.role === "BRIDE_FAMILY" && side !== "BRIDE") {
+  // Verify the caller belongs to this event
+  if (session.user.eventId !== eventId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  if (session?.user.role === "GROOM_FAMILY" && side !== "GROOM") {
+
+  // Family roles may only add to their side
+  if (session.user.role === "BRIDE_FAMILY" && side !== "BRIDE") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (session.user.role === "GROOM_FAMILY" && side !== "GROOM") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
